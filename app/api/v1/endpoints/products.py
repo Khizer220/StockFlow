@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database.session import get_db
 from app.core.dependencies import get_current_user
+from app.core.permissions import require_admin
 
 from app.schemas.product import (
     ProductCreate,
@@ -34,7 +35,8 @@ router = APIRouter(
 )
 def create_product_endpoint(
     product_data: ProductCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(require_admin)
 ):
     try:
         return create_product(db, product_data)
@@ -73,7 +75,8 @@ def get_product_endpoint(
 def update_product_endpoint(
     product_id: int,
     product_data: ProductUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(require_admin)
 ):
     try:
         product = update_product(
@@ -100,7 +103,8 @@ def update_product_endpoint(
 @router.delete("/{product_id}")
 def remove_product(
     product_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(require_admin)
 ):
     deleted_product = delete_product(db, product_id)
 
@@ -115,3 +119,4 @@ def remove_product(
         "product_id": product_id,
         "is_active": deleted_product.is_active
     }
+
