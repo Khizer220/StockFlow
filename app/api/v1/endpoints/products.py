@@ -3,7 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.schemas.product import ProductCreate, ProductResponse
+from app.core.dependencies import get_current_user
+
+from app.schemas.product import (
+    ProductCreate,
+    ProductResponse,
+    ProductUpdate
+)
+
 from app.services.product_service import (
     create_product,
     delete_product,
@@ -11,16 +18,14 @@ from app.services.product_service import (
     get_product_by_id,
     update_product
 )
+
+
 router = APIRouter(
     prefix="/products",
-    tags=["Products"]
+    tags=["Products"],
+    dependencies=[Depends(get_current_user)]
 )
 
-from app.schemas.product import (
-    ProductCreate,
-    ProductResponse,
-    ProductUpdate
-)
 
 @router.post(
     "/",
@@ -38,13 +43,15 @@ def create_product_endpoint(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(error)
-        )
+        ) from error
+
 
 @router.get("/", response_model=list[ProductResponse])
 def get_products_endpoint(
     db: Session = Depends(get_db)
 ):
     return get_all_products(db)
+
 
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product_endpoint(
@@ -55,7 +62,7 @@ def get_product_endpoint(
 
     if product is None:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Product not found"
         )
 
@@ -77,7 +84,7 @@ def update_product_endpoint(
 
         if product is None:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Product not found"
             )
 
@@ -85,9 +92,10 @@ def update_product_endpoint(
 
     except ValueError as error:
         raise HTTPException(
-            status_code=409,
+            status_code=status.HTTP_409_CONFLICT,
             detail=str(error)
-        )
+        ) from error
+
 
 @router.delete("/{product_id}")
 def remove_product(
@@ -98,13 +106,12 @@ def remove_product(
 
     if deleted_product is None:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Product not found"
         )
-        
 
     return {
-    "message": "Product deactivated successfully",
-    "product_id": product_id,
-    "is_active": deleted_product.is_active
+        "message": "Product deactivated successfully",
+        "product_id": product_id,
+        "is_active": deleted_product.is_active
     }
