@@ -1,9 +1,11 @@
 
 from decimal import Decimal
-from sqlalchemy import String, Integer, Numeric, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy import String, Integer, Numeric, Boolean, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.session import Base
+from app.models.associations import product_suppliers
 
 
 class Product(Base):
@@ -20,9 +22,9 @@ class Product(Base):
     )
 
     sku: Mapped[str] = mapped_column(
-    String(50),
-    unique=True,
-    nullable=False
+        String(50),
+        unique=True,
+        nullable=False
     )
 
     description: Mapped[str | None] = mapped_column(
@@ -36,7 +38,23 @@ class Product(Base):
     )
 
     is_active: Mapped[bool] = mapped_column(
-    Boolean,
-    default=True,
-    nullable=False
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
+    category_id: Mapped[int | None] = mapped_column(
+        ForeignKey("categories.id"),
+        nullable=True
+    )
+
+    category: Mapped["Category | None"] = relationship(
+        "Category",
+        back_populates="products"
+    )
+
+    suppliers: Mapped[list["Supplier"]] = relationship(
+        "Supplier",
+        secondary=product_suppliers,
+        back_populates="products"
     )
