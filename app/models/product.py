@@ -58,3 +58,8 @@ class Product(Base):
         secondary=product_suppliers,
         back_populates="products"
     )
+    inventory: Mapped["Inventory | None"] = relationship(
+        "Inventory",
+        back_populates="product",
+        uselist=False
+    )
