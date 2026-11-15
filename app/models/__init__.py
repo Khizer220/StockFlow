@@ -6,6 +6,7 @@ from app.models.user import User
 from app.models.inventory import Inventory
 from app.models.stock_movement import StockMovement
 from app.models.customer import Customer
+from app.models.order import Order, OrderItem
 
 __all__ = [
     "product_suppliers",
@@ -16,4 +17,6 @@ __all__ = [
     "Inventory",
     "StockMovement",
     "Customer",
+    "Order",
+    "OrderItem",
 ]
