@@ -33,16 +33,18 @@ router = APIRouter(
 )
 def create_order_endpoint(
     order_data: OrderCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     try:
-        return create_order(db, order_data)
+        return create_order(db, order_data, current_user)
 
     except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(error)
         ) from error
+
 
 
 @router.get("/", response_model=list[OrderResponse])
@@ -68,14 +70,21 @@ def get_order_by_id_endpoint(
     return order
 
 
+
 @router.patch("/{order_id}/status", response_model=OrderResponse)
 def update_order_status_endpoint(
     order_id: int,
     status_data: OrderStatusUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     try:
-        return update_order_status(db, order_id, status_data)
+        return update_order_status(
+            db,
+            order_id,
+            status_data,
+            current_user
+        )
 
     except ValueError as error:
         status_code = (
@@ -88,3 +97,4 @@ def update_order_status_endpoint(
             status_code=status_code,
             detail=str(error)
         ) from error
+
