@@ -5,7 +5,8 @@ from app.api.v1.endpoints import (
     auth,
     categories,
     suppliers,
-    inventory
+    inventory,
+    stock_movements
 )
 
 
@@ -16,3 +17,4 @@ api_router.include_router(products.router)
 api_router.include_router(categories.router)
 api_router.include_router(suppliers.router)
 api_router.include_router(inventory.router)
+api_router.include_router(stock_movements.router)
