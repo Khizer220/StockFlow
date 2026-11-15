@@ -5,6 +5,7 @@ from app.models.supplier import Supplier
 from app.models.user import User
 from app.models.inventory import Inventory
 from app.models.stock_movement import StockMovement
+from app.models.customer import Customer
 
 __all__ = [
     "product_suppliers",
@@ -14,4 +15,5 @@ __all__ = [
     "User",
     "Inventory",
     "StockMovement",
+    "Customer",
 ]
