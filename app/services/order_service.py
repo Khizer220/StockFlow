@@ -161,13 +161,124 @@ def create_order(
         raise
 
 
-def get_all_orders(db: Session):
-    return (
+
+def get_all_orders(
+    db: Session,
+    search: str | None = None,
+    status: str | None = None,
+    customer_id: int | None = None,
+    min_total: Decimal | None = None,
+    max_total: Decimal | None = None,
+    skip: int = 0,
+    limit: int = 10,
+    sort_by: str = "created_at",
+    sort_order: str = "desc"
+):
+    query = (
         db.query(Order)
+        .join(Customer, Order.customer_id == Customer.id)
         .options(joinedload(Order.items))
-        .order_by(Order.created_at.desc(), Order.id.desc())
-        .all()
     )
+
+    # Search customer name or email.
+    if search:
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            Customer.name.ilike(search_term) |
+            Customer.email.ilike(search_term)
+        )
+
+    # Filter by order status.
+    if status is not None:
+        allowed_statuses = {
+            "PENDING",
+            "CONFIRMED",
+            "COMPLETED",
+            "CANCELLED"
+        }
+
+        if status not in allowed_statuses:
+            raise ValueError("Invalid order status.")
+
+        query = query.filter(Order.status == status)
+
+    # Filter by customer.
+    if customer_id is not None:
+        query = query.filter(Order.customer_id == customer_id)
+
+    # Filter by minimum and maximum order amount.
+    if min_total is not None:
+        query = query.filter(Order.total_amount >= min_total)
+
+    if max_total is not None:
+        query = query.filter(Order.total_amount <= max_total)
+
+    # Whitelist sorting fields.
+    sort_columns = {
+        "id": Order.id,
+        "total_amount": Order.total_amount,
+        "created_at": Order.created_at
+    }
+
+    sort_column = sort_columns.get(sort_by)
+
+    if sort_column is None:
+        raise ValueError("Invalid sorting field.")
+
+    if sort_order == "asc":
+        query = query.order_by(sort_column.asc(), Order.id.asc())
+    elif sort_order == "desc":
+        query = query.order_by(sort_column.desc(), Order.id.desc())
+    else:
+        raise ValueError("Sort order must be asc or desc.")
+
+    return query.offset(skip).limit(limit).all()
+
+
+def count_orders(
+    db: Session,
+    search: str | None = None,
+    status: str | None = None,
+    customer_id: int | None = None,
+    min_total: Decimal | None = None,
+    max_total: Decimal | None = None
+):
+    query = (
+        db.query(Order)
+        .join(Customer, Order.customer_id == Customer.id)
+    )
+
+    if search:
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            Customer.name.ilike(search_term) |
+            Customer.email.ilike(search_term)
+        )
+
+    if status is not None:
+        allowed_statuses = {
+            "PENDING",
+            "CONFIRMED",
+            "COMPLETED",
+            "CANCELLED"
+        }
+
+        if status not in allowed_statuses:
+            raise ValueError("Invalid order status.")
+
+        query = query.filter(Order.status == status)
+
+    if customer_id is not None:
+        query = query.filter(Order.customer_id == customer_id)
+
+    if min_total is not None:
+        query = query.filter(Order.total_amount >= min_total)
+
+    if max_total is not None:
+        query = query.filter(Order.total_amount <= max_total)
+
+    return query.count()
+
 
 
 def get_order_by_id(db: Session, order_id: int):
@@ -272,4 +383,3 @@ def update_order_status(
     except Exception:
         db.rollback()
         raise
-        
