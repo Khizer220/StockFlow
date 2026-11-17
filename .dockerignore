@@ -1,0 +1,29 @@
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment and cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Git and IDE files
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Logs and build artifacts
+*.log
+build/
+dist/
+*.egg-info/
+
+# Windows files
+desktop.ini
+Thumbs.db
